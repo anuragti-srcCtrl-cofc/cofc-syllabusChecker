@@ -1,5 +1,6 @@
 
 # Syllabus Component Scanner
+<img width="817" alt="Screen Shot 2024-08-24 at 3 38 18 PM" src="https://github.com/user-attachments/assets/4b0de144-b54e-4319-8cf4-eeeb33f7634f">
 
 ## Warning
 
