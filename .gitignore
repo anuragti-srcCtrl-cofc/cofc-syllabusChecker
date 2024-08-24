@@ -1,0 +1,57 @@
+# Python Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+env/
+.env/
+
+# Distribution / Packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# PyInstaller
+# PyInstaller specific files and directories
+*.spec
+dist/
+build/
+__pycache__/
+*.pyo
+*.pyd
+
+# IDE / Editor Directories
+.vscode/
+.idea/
+*.suo
+*.ntvs_analysis.dat
+*.ncb
+*.sw?
+*.sublime-workspace
+*.sublime-project
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Python Package
+*.egg-info/
+.eggs/
+*.egg
+*.pyc
+
+# Environment Variables
+.env
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
