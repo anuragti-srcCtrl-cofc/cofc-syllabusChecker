@@ -1,35 +1,38 @@
 import os
-import fitz  # PyMuPDF
-import docx
+import fitz  # PyMuPDF for handling PDF documents
+import docx  # python-docx for handling Word documents
 import re
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
+# Function to read specifications from a text file
 def read_specifications(spec_file):
     with open(spec_file, 'r') as file:
         specs = file.readlines()
-    specs = [spec.strip() for spec in specs if spec.strip()]
+    specs = [spec.strip() for spec in specs if spec.strip()]  # Remove empty lines
     return specs
 
+# Function to scan PDF files for the specifications
 def scan_pdf(file_path, specs):
     found_specs = []
     try:
-        doc = fitz.open(file_path)
+        doc = fitz.open(file_path)  # Open the PDF with PyMuPDF
         text = ""
         for page in doc:
-            text += page.get_text()
+            text += page.get_text()  # Extract text from each page of the PDF
         for spec in specs:
             if re.search(re.escape(spec), text, re.IGNORECASE):
-                found_specs.append(spec)
+                found_specs.append(spec)  # Check if the specification is found in the text
     except Exception as e:
         print(f"Error scanning PDF {file_path}: {e}")
     return found_specs
 
+# Function to scan Word documents for the specifications
 def scan_word(file_path, specs):
     found_specs = []
     try:
-        doc = docx.Document(file_path)
-        text = "\n".join([para.text for para in doc.paragraphs])
+        doc = docx.Document(file_path)  # Open the Word document
+        text = "\n".join([para.text for para in doc.paragraphs])  # Extract text from all paragraphs
         for spec in specs:
             if re.search(re.escape(spec), text, re.IGNORECASE):
                 found_specs.append(spec)
@@ -37,11 +40,12 @@ def scan_word(file_path, specs):
         print(f"Error scanning Word document {file_path}: {e}")
     return found_specs
 
+# Function to scan Markdown files for the specifications
 def scan_markdown(file_path, specs):
     found_specs = []
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            text = file.read()
+            text = file.read()  # Read the entire Markdown file
         for spec in specs:
             if re.search(re.escape(spec), text, re.IGNORECASE):
                 found_specs.append(spec)
@@ -49,6 +53,7 @@ def scan_markdown(file_path, specs):
         print(f"Error scanning Markdown {file_path}: {e}")
     return found_specs
 
+# Function to scan all documents in the folder for the specifications
 def scan_documents(folder_path, specs):
     results = {}
     doc_files = [f for f in os.listdir(folder_path) if f.endswith(".pdf") or f.endswith(".docx") or f.endswith(".md")]
@@ -64,25 +69,30 @@ def scan_documents(folder_path, specs):
         else:
             continue
 
+        # Store the found specifications in the results dictionary
         results[filename] = found_specs
     return results
 
+# Function to browse and select a folder
 def browse_folder():
     folder = filedialog.askdirectory()
     if folder:
         folder_entry.delete(0, tk.END)
         folder_entry.insert(0, folder)
 
+# Function to browse and select the specification file
 def browse_spec_file():
     spec_file = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
     if spec_file:
         spec_file_entry.delete(0, tk.END)
         spec_file_entry.insert(0, spec_file)
 
+# Function to start the document scanning process
 def start_scan():
     folder_path = folder_entry.get()
     spec_file = spec_file_entry.get()
 
+    # Validation of the folder and specification file paths
     if not folder_path or not os.path.isdir(folder_path):
         messagebox.showerror("Error", "Please select a valid folder.")
         return
@@ -91,13 +101,13 @@ def start_scan():
         messagebox.showerror("Error", "Please select a valid text file.")
         return
 
-    start_button.config(state=tk.DISABLED)
+    start_button.config(state=tk.DISABLED)  # Disable the Start button while scanning
     scan_status_label.config(text="Scan has started...")
     result_text.delete(1.0, tk.END)
-    progress_bar.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+    progress_bar.grid(row=4, column=0, columnspan=3, padx=10, pady=10)  # Display progress bar
     
-    specs = read_specifications(spec_file)
-    results = scan_documents(folder_path, specs)
+    specs = read_specifications(spec_file)  # Read the specifications from the file
+    results = scan_documents(folder_path, specs)  # Scan documents and check for specifications
 
     for doc, found_specs in results.items():
         missing_specs = [spec for spec in specs if spec not in found_specs]
@@ -116,12 +126,12 @@ def start_scan():
         else:
             result_text.insert(tk.END, "All specifications found.\n")
 
-    progress_bar.grid_forget()
+    progress_bar.grid_forget()  # Hide the progress bar when scanning is complete
     scan_status_label.config(text="Scan completed.")
     start_button.config(state=tk.NORMAL)
 
+# Function to reset the application to its initial state
 def restart_application():
-    # Clear all input fields and reset the progress bar
     folder_entry.delete(0, tk.END)
     spec_file_entry.delete(0, tk.END)
     result_text.delete(1.0, tk.END)
@@ -129,9 +139,11 @@ def restart_application():
     scan_status_label.config(text="")
     start_button.config(state=tk.NORMAL)
 
+# Function to quit the application
 def quit_application():
     root.quit()
 
+# Initialize paths if the 'FolderToBeChecked' and 'specifications.txt' already exist
 def initialize_paths():
     workspace = os.getcwd()
     folder_path = os.path.join(workspace, 'FolderToBeChecked')
@@ -145,9 +157,11 @@ def initialize_paths():
         spec_file_entry.insert(0, spec_file_path)
         messagebox.showinfo("Specification File Auto-Selected", f"File 'specifications.txt' found and auto-selected. You can change it if needed.")
 
+# Main application window creation using Tkinter
 root = tk.Tk()
 root.title("Syllabus Component Scanner")
 
+# Create and arrange the GUI elements (labels, input fields, buttons)
 folder_label = tk.Label(root, text="Folder containing documents:")
 folder_label.grid(row=0, column=0, padx=10, pady=5, sticky="w")
 folder_entry = tk.Entry(root, width=50)
@@ -174,11 +188,13 @@ quit_button.grid(row=3, column=2, padx=10, pady=5, sticky="w")
 scan_status_label = tk.Label(root, text="")
 scan_status_label.grid(row=4, column=0, columnspan=3, padx=10, pady=5)
 
+# Progress bar setup
 progress_var = tk.DoubleVar()
 progress_bar = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate", variable=progress_var)
 
+# Text area for displaying results
 result_text = scrolledtext.ScrolledText(root, width=80, height=20)
 result_text.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
-initialize_paths()
+initialize_paths()  # Check for pre-existing folder and specification file
 root.mainloop()

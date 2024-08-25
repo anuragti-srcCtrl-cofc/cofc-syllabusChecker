@@ -11,7 +11,7 @@ This Python tool provides a simple GUI to scan a folder of PDF and Word document
 
 ## Features
 
-- Supports PDF and Word (`.docx`) documents
+- Supports markdown (`.md`), PDF and Word (`.docx`) documents. 
 - Allows the user to select a folder and a text file through a graphical user interface (GUI)
 - Displays results showing which documents contain the required syllabus components
 
@@ -39,10 +39,10 @@ You can install the required packages using `pip`.
 
 ## Usage
 
-1. Run the `SyllabusCheckerv2.py` script (Uses PyPDF). Or the `SyllabusChecker.py` script (Uses PyMuPDF).
+1. Run the `SyllabusChecker.py` script (Uses PyMuPDF). Or the `SyllabusCheckerv2.py` script (Uses PyPDF).
 
    ```bash
-   python SyllabusCheckerv2.py
+   python SyllabusChecker.py
    ```
 
 2. A graphical window will open.
