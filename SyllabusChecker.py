@@ -1,4 +1,7 @@
 import os
+import zipfile
+import shutil
+import xml.etree.ElementTree as ET
 import fitz  # PyMuPDF for handling PDF documents
 import docx  # python-docx for handling Word documents
 import re
@@ -53,10 +56,72 @@ def scan_markdown(file_path, specs):
         print(f"Error scanning Markdown {file_path}: {e}")
     return found_specs
 
+def extract_text_from_pages(file_path):
+    temp_dir = 'extracted_pages_content'
+    text_content = []
+    
+    try:
+        # Unzip the .pages file to extract its contents
+        with zipfile.ZipFile(file_path, 'r') as z:
+            z.extractall(temp_dir)
+        
+        # Search for XML files within the extracted directory
+        for root_dir, dirs, files in os.walk(temp_dir):
+            for file_name in files:
+                if file_name.endswith(".xml"):
+                    xml_file_path = os.path.join(root_dir, file_name)
+                    try:
+                        # Parse the XML file
+                        tree = ET.parse(xml_file_path)
+                        root = tree.getroot()
+                        # Append the text content from the XML tree to the list
+                        text_content.append(''.join(root.itertext()))
+                    except ET.ParseError as e:
+                        print(f"Error parsing XML file {xml_file_path}: {e}")
+                    except Exception as e:
+                        print(f"Unexpected error processing XML file {xml_file_path}: {e}")
+
+        # Check if we found any text content
+        if text_content:
+            text = "\n".join(text_content)  # Combine all text into a single string
+        else:
+            raise FileNotFoundError("No XML content found in the .pages file")
+
+    except zipfile.BadZipFile:
+        print(f"Error: The .pages file {file_path} is not a valid ZIP file.")
+    except Exception as e:
+        print(f"Error extracting text from .pages file {file_path}: {e}")
+    finally:
+        # Clean up the extracted directory
+        if os.path.isdir(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except OSError as e:
+                print(f"Error: Could not delete temp directory {temp_dir}. Reason: {e}")
+
+    return text if text_content else ""
+
+# Function to scan .pages files for the specifications
+def scan_pages(file_path, specs):
+    found_specs = []
+    try:
+        text = extract_text_from_pages(file_path)  # Extract the text from the .pages file
+        
+        if isinstance(text, str):  # Ensure the extracted text is a string
+            for spec in specs:
+                if re.search(re.escape(spec), text, re.IGNORECASE):
+                    found_specs.append(spec)
+        else:
+            raise TypeError("Extracted content is not a string")
+    
+    except Exception as e:
+        print(f"Error scanning .pages file {file_path}: {e}")
+    
+    return found_specs
 # Function to scan all documents in the folder for the specifications
 def scan_documents(folder_path, specs):
     results = {}
-    doc_files = [f for f in os.listdir(folder_path) if f.endswith(".pdf") or f.endswith(".docx") or f.endswith(".md")]
+    doc_files = [f for f in os.listdir(folder_path) if f.endswith(".pdf") or f.endswith(".docx") or f.endswith(".md") or f.endswith(".pages")]
 
     for filename in doc_files:
         file_path = os.path.join(folder_path, filename)
@@ -66,6 +131,8 @@ def scan_documents(folder_path, specs):
             found_specs = scan_word(file_path, specs)
         elif filename.endswith(".md"):
             found_specs = scan_markdown(file_path, specs)
+        elif filename.endswith(".pages"):
+            found_specs = scan_pages(file_path, specs)
         else:
             continue
 
